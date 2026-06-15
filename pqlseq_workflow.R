@@ -86,7 +86,7 @@ for (col_ in 2:length(colnames(design))){
   pheno <- (design[,paste(fit_colname)])
   covariates <- as.matrix(design[,colnames(design)[colnames(design) != fit_colname & colnames(design) != "(Intercept)"]])
   
-  #have to do this in batches bcs of how many samples we have
+  #have to do this in batches bcs of how large the dataset is
   i = 1
   while (i + 2000 < nrow(coverage_all_chr)) {
     print(i)
