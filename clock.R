@@ -1,6 +1,4 @@
 #!/usr/bin/env /packages/apps/spack/18/opt/spack/gcc-11.2.0/r-4.2.2-kpl/bin/Rscript
-#### Blaise Mariner 
-## for questions contact bmarine2@asu.edu or blaisemariner17@gmail.com
 
 rm(list = ls())  # Clear the workspace
 
@@ -72,16 +70,7 @@ build_clock_leave_one_out <- function(dog_id,
   return(data.frame("lid_pid" = test_lid_pid, "Predicted_age" = predicted[1,1]))
 }
 
-#we have imputed maxgap regions and imputed promoters a priori so we need to cat them together
 perc_meth_imputed <- readRDS("methylImp2_perc_meth_imputed.rds")
-perc_meth_imputed_prom <- readRDS("methylImp2_perc_meth_imputed-PROMOTERS.rds")
-perc_meth_imputed_prom <- perc_meth_imputed_prom[,colnames(perc_meth_imputed_prom) %in% colnames(perc_meth_imputed)]
-perc_meth_imputed <- perc_meth_imputed[,colnames(perc_meth_imputed) %in% colnames(perc_meth_imputed_prom)]
-perc_meth_imputed<- perc_meth_imputed[,order(colnames(perc_meth_imputed))]
-perc_meth_imputed_prom<- perc_meth_imputed_prom[,order(colnames(perc_meth_imputed_prom))]
-all(colnames(perc_meth_imputed) == colnames(perc_meth_imputed_prom))
-perc_meth_imputed <- rbind(perc_meth_imputed, perc_meth_imputed_prom)
-rm(perc_meth_imputed_prom)
 
 metaData <- readRDS("dap_rrbs-metaData.rds")
 
@@ -117,4 +106,3 @@ if (T){
   colnames(res) <- c("lid_pid", "predicted")
   saveRDS(res, "clock_result.rds")
 }
-
