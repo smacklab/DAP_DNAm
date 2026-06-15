@@ -1,6 +1,4 @@
 #!/usr/bin/env /packages/apps/spack/18/opt/spack/gcc-11.2.0/r-4.2.2-kpl/bin/Rscript
-#### Blaise Mariner 
-## for questions contact bmarine2@asu.edu or blaisemariner17@gmail.com
 
 library_list <- c(
   "tidyverse",
@@ -19,7 +17,7 @@ print(getwd())
 # load in the kinship / genetic relatedness matrix
 RelatednessMatrix_ <- readRDS(file = "GRM_dog_id.rds")
 
-# get the baseline precision samples
+# get the baseline precision samples-- which are the earliest sample recieved for each dog
 metaData <- readRDS("dap_rrbs-metaData.rds")
 metaData <- metaData[metaData$first_rrbs == 'yes' & grepl("precision", metaData$Cohort),]
 
@@ -30,7 +28,7 @@ metaData$predicted_height <- scale(metaData$predicted_height, scale = F)
 coverage_all_chr <- readRDS(file =  paste0("coverage_all_chr-PROMOTERS.rds"))
 methylation_all_chr <- readRDS(file =  paste0("methylation_all_chr-PROMOTERS.rds"))
 
-# make sure everything is in each other
+# align lid_pid values across matrices
 metaData <- metaData[metaData$lid_pid %in% colnames(coverage_all_chr),]
 
 RelatednessMatrix_<- RelatednessMatrix_[rownames(RelatednessMatrix_) %in% metaData$dog_id, 
@@ -56,16 +54,33 @@ if (! (all(colnames(coverage_all_chr) == colnames(methylation_all_chr)) & all(co
 ) { stop("troubleshoot your columns and lid_pids")
 }
 
+metaData_in_relatednessMat$prep_date <- as.factor(metaData_in_relatednessMat$prep_date)
+
 #make your design mat
 # ##https://www.xzlab.org/software/pqlseq/PQLseqManual.pdf
 design <- model.matrix(
-  ~Age_at_sample + Sex_bool + predicted_height + Breed_Status_bool, data = metaData_in_relatednessMat
+  ~Age_at_sample + Sex_bool + predicted_height + Breed_Status_bool + prep_date,
+   data = metaData_in_relatednessMat
 )
 
-#loop through your variates
+### for nested run:
+# med_ph <- median(metaData_in_relatednessMat$predicted_height)
+# metaData_in_relatednessMat$size_nested[metaData_in_relatednessMat$predicted_height < med_ph] <- "Smaller"
+# metaData_in_relatednessMat$size_nested[metaData_in_relatednessMat$predicted_height > med_ph] <- "Larger"
+# metaData_in_relatednessMat$size_nested <- as.factor(metaData_in_relatednessMat$size_nested, 
+#                levels =c("Smaller", "Larger"))
+
+# design <- model.matrix(
+#   ~Age_at_sample*size_nested + Sex_bool + Breed_Status_bool + prep_date,
+#    data = metaData_in_relatednessMat
+# )
+
+#loop through your variables
 for (col_ in 2:length(colnames(design))){
   
   fit_colname <- colnames(design)[col_]
+  if (fit_colname == "prep_date") {next}
+
   new_colname <- paste0(fit_colname)
   
   pheno <- (design[,paste(fit_colname)])
